@@ -1,6 +1,13 @@
 ---
 title: "Differential Expression Analysis with DESeq2"
-output: html_document
+teaching: 0
+exercises: 0
+questions:
+- "Key question"
+objectives:
+- "First objective."
+keypoints:
+- "First key point."
 ---
 
 One of the most common applications of RNA-seq technology is using it for identifying genes that are differentially expressed between sample groups, for example, wild type vs mutant, or cancer vs normal samples. 
