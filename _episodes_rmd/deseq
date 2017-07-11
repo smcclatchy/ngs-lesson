@@ -1,7 +1,5 @@
 ---
-title: "Differential Expression Analysis by DESeq2: RNA-seq workshop at Systems Genetics Short Course 2015"
-author: "Narayanan Raghupathy, The Jackson Laboratory"
-date: "September 25, 2015"
+title: "Differential Expression Analysis with DESeq2"
 output: html_document
 ---
 
@@ -16,7 +14,8 @@ We will be using read counts at gene level and the software tool **DESeq2** for 
 R Libraries and Data Import
 ------------------------------------
 Let us load the R packages and the data needed for the differential expression analysis.
-```{r R_package, results="hide"}
+```
+{r R_package, results="hide"}
 library("DESeq2")
 library(ggplot2)
 library(dplyr)
