@@ -1,136 +1,68 @@
 ---
-title: "Differential Expression Analysis with DESeq2"
+title: "Differential Gene Expression Analysis"
 teaching: 0
 exercises: 0
 questions:
 - "Key question"
 objectives:
-- "First objective."
+- "To check for sample mixup in data."
+- "To identify genes differentially expressed between treatment groups."
+- "To describe the effect of sample size on differential gene expression analysis."
 keypoints:
-- "First key point."
-source: Rmd
+- "Non-coding RNA can be used to check for sample mixups in RNA sequencing data."
 ---
 
+Once we have aligned sequence reads and have quantified expression abundances, we can continue the pipeline with differential expression analysis. One of the most common applications of RNA sequencing technology is to identify genes that are differentially expressed between sample groups, for example, between wild type and mutant, or between tumor and normal samples. Count data report the number of sequence reads (fragments) assigned to each gene, which describes the expression abundance of a gene. Similar data can be found in ChIP-Seq, HiC, shRNA screening, or mass spectrometry experiments.
 
-
-One of the most common applications of RNA-seq technology is using it for identifying genes that are differentially expressed between sample groups, for example, wild type vs mutant, or cancer vs normal samples. 
-
-In the last section, We saw an example of how we can use **EMASE** powereed by **Kallisto** pseudo-alignment (instead of bowtie alignment) and quantify expression abundances at isoform/gene level for a single animal from Diversity Outbred mouse population. 
-
-Let us assume that we have used the same pipeline and quantified expression abundances for all 192 DO samples.
-
-We will be using read counts at gene level and the software tool **DESeq2** for doing differential expression analysis on a subset of the DO mice. 
+We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html). 
 
 R Libraries and Data Import
 ------------------------------------
-Let us load the R packages and the data needed for the differential expression analysis.
-```
-{r R_package, results="hide"}
+Load the R packages and libraries.
+
+~~~
+## try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite("DESeq2")
 library("DESeq2")
 library(ggplot2)
 library(dplyr)
-```
+~~~
+{: .r}
 
-Let us load the R object file containing all the data we need.
+Load the data file from the URL. See the documentation for *gzcon* for an explanation of uncompressing a zipped (.gz) file through a connection, in this case, a URL.
 
 ~~~
-load("/data/RData/DO192_DataforSysGenCourse.rdata")
+z <- gzcon(con = url("http://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE72759&format=file&file=GSE72759_DO192_RNAseq_UpperQuartileNormalized_n21454genes_forGEOSubmission.txt.gz")) # uncompress the file
+raw <- textConnection(readLines(z)) # prepare for the read.table function
+data <- read.table(raw, header = TRUE)
+dim(data)
+names(data)
+data[1:5, 1:5] # a quick look at the data
 ~~~
 {: .r}
 
 
+~~~
+                   X    F326   F327    F328    F329
+1 ENSMUSG00000090025  0.0145 0.0000  0.0667  0.0149
+2 ENSMUSG00000051951  0.0000 0.0000  0.0267  0.0000
+3 ENSMUSG00000025902  0.4928 0.2930  0.5067  0.3134
+4 ENSMUSG00000098104  0.0145 0.0000  0.0133  0.0000
+5 ENSMUSG00000033845 11.3478 8.2895 10.5467 11.0448
+~~~
+{: .output}
+
+
+Check the expression data and make it a matrix.
 
 ~~~
-Warning in readChar(con, 5L, useBytes = TRUE): cannot open compressed file
-'/data/RData/DO192_DataforSysGenCourse.rdata', probable reason 'No such
-file or directory'
-~~~
-{: .error}
-
-
-
-~~~
-Error in readChar(con, 5L, useBytes = TRUE): cannot open the connection
-~~~
-{: .error}
-
-
-
-~~~
-exp.all = read.table("/data/emase/expected_read_counts_gene_level.txt", header=T)
-~~~
-{: .r}
-
-
-
-~~~
-Warning in file(file, "rt"): cannot open file '/data/emase/
-expected_read_counts_gene_level.txt': No such file or directory
-~~~
-{: .error}
-
-
-
-~~~
-Error in file(file, "rt"): cannot open the connection
-~~~
-{: .error}
-
-Let us check the expression data and make it a matrix.
-
-~~~
-geneIDs = exp.all[,1]
+geneIDs = data[,1]
+data=data[,-1]
+rownames(data)=geneIDs
+data[1:5,1:5]
 ~~~
 {: .r}
-
-
-
-~~~
-Error in eval(expr, envir, enclos): object 'exp.all' not found
-~~~
-{: .error}
-
-
-
-~~~
-exp.all=exp.all[,-1]
-~~~
-{: .r}
-
-
-
-~~~
-Error in eval(expr, envir, enclos): object 'exp.all' not found
-~~~
-{: .error}
-
-
-
-~~~
-rownames(exp.all)=geneIDs
-~~~
-{: .r}
-
-
-
-~~~
-Error in eval(expr, envir, enclos): object 'geneIDs' not found
-~~~
-{: .error}
-
-
-
-~~~
-exp.all[1:5,1:5]
-~~~
-{: .r}
-
-
-
-~~~
-Error in eval(expr, envir, enclos): object 'exp.all' not found
-~~~
-{: .error}
 
 Let us create data frame containing key experimental design factors for the experiment.
 
