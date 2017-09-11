@@ -22,16 +22,13 @@ One of the most common applications of RNA sequencing technology is to identify 
 
 ![](../fig/RNAseq-workflow.png)
 
-Once we have aligned sequence reads and have quantified read counts, we can continue the pipeline with differential expression analysis. We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html). 
+Once we have aligned sequence reads and have quantified expression, we can continue the pipeline with differential expression analysis. We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html). 
 
 R Libraries and Data Import
 ------------------------------------
-Load the R packages and libraries.
+Load the R libraries.
 
-```{r, include=FALSE}
-## try http:// if https:// URLs are not supported
-source("https://bioconductor.org/biocLite.R")
-biocLite("DESeq2")
+```{r}
 library("DESeq2")
 library(ggplot2)
 library(dplyr)

@@ -3,4 +3,55 @@ layout: page
 title: Setup
 permalink: /setup/
 ---
-FIXME
+## Installation
+
+This workshop requires package installation from [CRAN](https://cran.r-project.org) 
+and from [Bioconductor](http://www.bioconductor.org/).
+
+### CRAN
+
+To install required packages from CRAN, run this code in the Console.
+
+~~~
+install.packages(c("ggplot2", "plyr", "dplyr"))
+~~~
+{: .r}
+
+Alternatively, you can use the Packages tab in RStudio.
+Select the Packages tab and click the Install button.
+Type this comma-separated list of package names into 
+the pop-up window.
+
+ggplot2, plyr, dplyr
+
+### Bioconductor
+
+The `biocLite.R` script installs Bioconductor packages.
+Run the following in the Console to source this script 
+and run it to install required Bioconductor packages.
+
+~~~
+## try http:// if https:// URLs are not supported
+source("https://bioconductor.org/biocLite.R")
+biocLite(c("DESeq2", "org.Mm.eg.db", "genefilter", "topGO", "DT"))
+~~~
+{: .r}
+
+
+## Data files and project organization
+Please download the following large files before the workshop. 
+
+1. Create a project in RStudio. Refer to 
+[this lesson](http://swcarpentry.github.io/r-novice-gapminder/02-project-intro/) 
+to do this.
+
+2. Create a data directory (folder) to hold the data, and a script 
+directory to house your scripts. You can do this in the 
+RStudio Files tab, or use Finder on a Mac, or go to the Start menu
+and select (My) Computer on a Windows machine.
+
+3. Download the following data files into your data directory. 
+
+**FIXME:** link to DO_str417_striatum_addiction2017.full.w.res.Rdata
+
+

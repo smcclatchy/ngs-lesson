@@ -19,13 +19,320 @@ One of the most common applications of RNA sequencing technology is to identify 
 
 ![](../fig/RNAseq-workflow.png)
 
-Once we have aligned sequence reads and have quantified read counts, we can continue the pipeline with differential expression analysis. We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html). 
+Once we have aligned sequence reads and have quantified expression, we can continue the pipeline with differential expression analysis. We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html). 
 
 R Libraries and Data Import
 ------------------------------------
-Load the R packages and libraries.
+Load the R libraries.
 
 
+~~~
+library("DESeq2")
+~~~
+{: .r}
+
+
+
+~~~
+Loading required package: S4Vectors
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: methods
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: stats4
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: BiocGenerics
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: parallel
+~~~
+{: .output}
+
+
+
+~~~
+
+Attaching package: 'BiocGenerics'
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:parallel':
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:stats':
+
+    IQR, mad, sd, var, xtabs
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:base':
+
+    anyDuplicated, append, as.data.frame, cbind, colMeans,
+    colnames, colSums, do.call, duplicated, eval, evalq, Filter,
+    Find, get, grep, grepl, intersect, is.unsorted, lapply,
+    lengths, Map, mapply, match, mget, order, paste, pmax,
+    pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
+    rowMeans, rownames, rowSums, sapply, setdiff, sort, table,
+    tapply, union, unique, unsplit, which, which.max, which.min
+~~~
+{: .output}
+
+
+
+~~~
+
+Attaching package: 'S4Vectors'
+~~~
+{: .output}
+
+
+
+~~~
+The following object is masked from 'package:base':
+
+    expand.grid
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: IRanges
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: GenomicRanges
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: GenomeInfoDb
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: SummarizedExperiment
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: Biobase
+~~~
+{: .output}
+
+
+
+~~~
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: DelayedArray
+~~~
+{: .output}
+
+
+
+~~~
+Loading required package: matrixStats
+~~~
+{: .output}
+
+
+
+~~~
+
+Attaching package: 'matrixStats'
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:Biobase':
+
+    anyMissing, rowMedians
+~~~
+{: .output}
+
+
+
+~~~
+
+Attaching package: 'DelayedArray'
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:matrixStats':
+
+    colMaxs, colMins, colRanges, rowMaxs, rowMins, rowRanges
+~~~
+{: .output}
+
+
+
+~~~
+The following object is masked from 'package:base':
+
+    apply
+~~~
+{: .output}
+
+
+
+~~~
+library(ggplot2)
+library(dplyr)
+~~~
+{: .r}
+
+
+
+~~~
+Warning: Installed Rcpp (0.12.12) different from Rcpp used to build dplyr (0.12.11).
+Please reinstall dplyr to avoid random crashes or undefined behavior.
+~~~
+{: .error}
+
+
+
+~~~
+
+Attaching package: 'dplyr'
+~~~
+{: .output}
+
+
+
+~~~
+The following object is masked from 'package:matrixStats':
+
+    count
+~~~
+{: .output}
+
+
+
+~~~
+The following object is masked from 'package:Biobase':
+
+    combine
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:GenomicRanges':
+
+    intersect, setdiff, union
+~~~
+{: .output}
+
+
+
+~~~
+The following object is masked from 'package:GenomeInfoDb':
+
+    intersect
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:IRanges':
+
+    collapse, desc, intersect, setdiff, slice, union
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:S4Vectors':
+
+    first, intersect, rename, setdiff, setequal, union
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:BiocGenerics':
+
+    combine, intersect, setdiff, union
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:stats':
+
+    filter, lag
+~~~
+{: .output}
+
+
+
+~~~
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+~~~
+{: .output}
 
 Load the data file from the URL. See the documentation for *gzcon* for an explanation of uncompressing a zipped (.gz) file through a connection, in this case, a URL.
 
