@@ -1,0 +1,277 @@
+---
+title: "Differential Gene Expression Analysis"
+teaching: 0
+exercises: 0
+questions:
+- "Key question"
+objectives:
+- "To check for sample mixup in data."
+- "To identify genes differentially expressed between treatment groups."
+- "To describe the effect of sample size on differential gene expression analysis."
+keypoints:
+- "Non-coding RNA can be used to check for sample mixups in RNA sequencing data."
+source: Rmd
+---
+
+```{r, include=FALSE}
+source("../bin/chunk-options.R")
+knitr_fig_path("03-")
+```
+
+---
+-   [Intro](#intro)
+-   [QC Sample Mix ups](#qc-sample-mix-ups)
+-   [DESeq2 Package](#deseq2-package)
+-   [MA plot](#ma-plot)
+-   [Plot counts](#plot-counts)
+-   [Extract DE genes](#extract-de-genes)
+-   [Gene ontology enrichment analysis](#gene-ontology-enrichment-analysis)
+-   [Export to GeneWeaver](#geneWeaverExport)
+---
+
+ Intro
+-----
+One of the most common applications of RNA sequencing technology is to identify genes that are differentially expressed between sample groups, for example, between wild type and mutant, or between tumor and normal samples. Count data report the number of sequence reads (fragments) assigned to each gene, which describes the expression abundance of a gene. Similar data can be found in ChIP-Seq, HiC, shRNA screening, or mass spectrometry experiments.
+
+![](../fig/RNAseq-workflow.png)RNA-seq 
+
+We will be using Diversity Outbred Striatum IVSA dataset: 386 DO mice, males vs. females.
+
+``` {r setup, include=FALSE}
+load("../data/DO_str417_striatum_addiction2017.full.w.res.Rdata")
+# load library
+library(ggplot2)
+library(DESeq2)
+library(org.Mm.eg.db)
+library(genefilter)
+library(topGO)
+library(plyr)
+library(dplyr)
+library(DT)
+```
+
+
+For a given gene, how would you compare expression between males and females?
+
+
+ QC Sample Mix ups
+-----------------
+
+
+Let us make a plot.
+
+``` {r samplemixups, echo=FALSE, warning=FALSE}
+# find the gene
+gene.symbol = "ENSMUSG00000086503"
+index.rna = which(row.names(str.rnaseq.do.rZ) == gene.symbol)
+dt = data.frame(str.rnaseq.samples, expr = as.numeric(t(str.rnaseq.do.rZ[index.rna, ])))
+
+# we want Sex on x-axis, expr on y-axis and color by Sex
+p <- ggplot(dt, aes(x=Sex, y=expr, colour = Sex))
+# make a dot for every point, jitter a bit to avoid overplotting
+p <- p + geom_point(position = position_jitter(width = 0.2), size=3)
+# plot a mean for each group
+p <- p + stat_summary(fun.y=mean, geom="point", shape=5, size=4, color="black")
+# add y-label and title
+p <- p + ylab(gene.symbol) + ggtitle(gene.symbol)
+p
+```
+
+ DESeq2 Package
+--------------
+  
+  With low number of samples per group, the estimate of variance is not accurate. The solution is share information across the genes, i.e. Bayesian shrinkage.
+
+For **DESeq2** we will need be using read counts at RNA level.
+
+Let us filter out genes with zero and low expression (less than 5 read counts) in 50% of the samples.
+
+``` {r thresholds, echo=FALSE, warning=FALSE}
+thres= 5
+nzIndex= as.vector(which(apply(str.rnaseq.do,1,function(x){sum(x>thres)/length(x)})>=0.5))
+head(nzIndex)
+exp.DE = str.rnaseq.do[nzIndex,]
+dim(exp.DE)
+```
+
+And apply DESeq2 package as follows:
+
+```{r, deseq, include=FALSE} 
+#library(DESeq2)
+#colData <- DataFrame(group = factor(str.rnaseq.samples$Sex))
+#dds <- DESeqDataSetFromMatrix(countData = as.data.frame(round(exp.DE)),
+#                             colData = colData, design = ~ group)
+#dds <- DESeq(dds)
+#res = results(dds)
+#save(list=c("str.rnaseq.samples","str.rnaseq.do","str.rnaseq.do.rZ","res","dds"),file="./data/Rdata/DO_str417_striatum_addiction2017.full.w.res.Rdata")
+```
+summary of Differential Expression Analysis
+```{r, summary} 
+summary(res)
+```
+
+ MA plot
+-------
+
+In DESeq2, the function plotMA shows the log2 fold changes attributable to a given variable over the mean of normalized counts for all the samples in the DESeqDataSet. Points will be colored red if the adjusted p value is less than 0.1. Points which fall out of the window are plotted as open triangles pointing either up or down.
+```{r, maplot}
+plotMA(res, main="M-A Plot: All Samples per group", ylim=c(-2,2))
+```
+
+ Plot counts
+-----------
+
+It can also be useful to examine the counts of reads for a single gene across the groups. A simple function for making this plot is plotCounts, which normalizes counts by sequencing depth and adds a pseudocount of 1/2 to allow for log scale plotting. The counts are grouped by the variables in intgroup, where more than one variable can be specified. Here we specify the gene which had the smallest p value from the results table created above. You can select the gene to plot by rowname or by numeric index.
+``` {r, plotcount}
+ylab.nm <- "Eif2s3x"
+d<-plotCounts(dds, gene=which.min(res$padj), intgroup="group",
+              returnData=TRUE)
+p <- ggplot(d, aes(x=group, y=count)) +
+  geom_point(position=position_jitter(w=0.2,h=0),size=3)
+p <- p + theme(axis.text=element_text(size=12),
+               axis.title=element_text(size=20,face="bold", colour = "blue"),
+               plot.title = element_text(size = rel(2))) + ylab(label = ylab.nm)
+p
+```
+
+ Extract DE genes
+----------------
+
+We have identified 716 up-regulated and 789 down-regulated genes, respectively. Let us next extract these gene lists for future use.
+
+We first order results by the smallest p value:
+``` {r, extractde}
+resOrdered <- res[order(res$pvalue),]
+```
+
+Extract all results
+``` {r, extractdeAll}
+write.csv(as.data.frame(resOrdered), file="DO_FvM_deresults.csv")
+```
+
+Extract significant only results
+``` {r, extractdeSig}
+resSig <- subset(resOrdered, padj < 0.1)
+write.csv(as.data.frame(resSig), file="DO_FvM_deresults_sig0.1.csv")
+```
+
+ Gene ontology enrichment analysis
+---------------------------------
+
+We will use R/topGO for the purposes of enrichment analysis
+``` {r, topGO, echo=FALSE, warning=FALSE, message=FALSE}
+resSig <- subset(resOrdered, padj < 0.1)
+sigGenes <- rownames(subset(resSig, padj < 0.1))
+anno <- AnnotationDbi::select(org.Mm.eg.db, 
+               keys=rownames(resSig), 
+              columns=c("SYMBOL","SYMBOL", "GENENAME"),
+              keytype="ENSEMBL")
+  
+anSig <- as.data.frame(subset(anno, ENSEMBL %in% sigGenes))
+
+
+overallBaseMean <- as.matrix(resOrdered[, "baseMean", drop = F])
+sig_idx <- match(anSig$ENSEMBL, rownames(overallBaseMean))
+backG <- c()
+for(i in sig_idx){
+  ind <- genefinder(overallBaseMean, i, 10, method = "manhattan")[[1]]$indices
+  backG <- c(backG, ind)
+
+  }
+backG <- unique(backG)
+backG <- rownames(overallBaseMean)[backG]
+
+
+onts = c( "MF", "BP", "CC" )
+geneIDs = rownames(overallBaseMean)
+inUniverse = geneIDs %in% c(anSig$ENSEMBL,  backG) 
+inSelection =  geneIDs %in% anSig$ENSEMBL 
+alg <- factor( as.integer( inSelection[inUniverse] ) )
+names(alg) <- geneIDs[inUniverse]
+
+tab = as.list(onts)
+names(tab) = onts
+  for(i in 1:3){
+
+  ## prepare data
+  tgd <- new( "topGOdata", ontology=onts[i], allGenes = alg, nodeSize=5,
+                 annot=annFUN.org, mapping="org.Mm.eg.db", ID = "ensembl" )
+
+  ## run tests
+    resultTopGO.elim <- runTest(tgd, algorithm = "elim", statistic = "Fisher" )
+    resultTopGO.classic <- runTest(tgd, algorithm = "classic", statistic = "Fisher" )
+
+  ## look at results
+    tab[[i]] <- GenTable( tgd, Fisher.elim = resultTopGO.elim, 
+        Fisher.classic = resultTopGO.classic,
+        orderBy = "Fisher.classic" , topNodes = 200)
+
+  }
+
+topGOResults <- rbind.fill(tab)
+write.csv(topGOResults, file = "DO_FvM_topGOResults.csv")
+
+DT::datatable(topGOResults)
+```
+
+
+ Export to GeneWeaver
+-----------------------
+
+Let us first subset the differential gene expression results. One containing up-regulated genes and the other down-regulated genes. We will create a batch upload file with two genesets, named UpReg_Sex_Specific_Genes_AddictionShortCourse2017 and DownReg_Sex_Specific_Genes_AddictionShortCourse2017
+
+``` {r, geneWeaverExp, echo=FALSE, warning=FALSE, message=FALSE}
+resSigUp <- resSig[which(resSig$log2FoldChange > 0),]
+resSigDown <- resSig[which(resSig$log2FoldChange < 0),]
+
+score_type <- "! Q-Value < 0.10"
+sp <- "@ Mus musculus"
+id_type <- "% Ensembl Gene"
+access <- "A Private"
+
+of_name <- "DO_SexDifferences_GeneExpression_AddictionShortCource_2017.txt"
+file.create(of_name)
+
+write(score_type,of_name,append = TRUE)
+write(sp,of_name,append = TRUE)
+write(id_type,of_name,append = TRUE)
+write(access,of_name,append = TRUE)
+
+
+shrt.nm.geneset <- c(": UpReg_Sex_Specific_Genes_AddictionShortCourse2017")
+write(shrt.nm.geneset ,of_name,append = TRUE)
+
+long.nm.geneset <- c("= Upregulated Sex Specific Genes")
+write(long.nm.geneset ,of_name,append = TRUE)
+
+desc.geneset <- paste0("+" ," This geneset contains gene identified as significantly differentially expressed", collape=" ")
+write(desc.geneset ,of_name,append = TRUE)
+
+write("",of_name,append = TRUE)
+
+for (i in 1:dim(resSigUp)[1]) {
+    val <- paste(row.names(resSigUp)[i],resSigUp[i,6],sep="\t")
+    write(val,of_name,sep="\t",append = TRUE)
+}
+
+write("",of_name,append = TRUE)
+
+shrt.nm.geneset <- c(": DownReg_Sex_Specific_Genes_AddictionShortCourse2017")
+write(shrt.nm.geneset ,of_name,append = TRUE)
+
+long.nm.geneset <- c("= Downregulated Sex Specific Genes")
+write(long.nm.geneset ,of_name,append = TRUE)
+
+desc.geneset <- paste0("+" ," This geneset contains gene identified as significantly differentially expressed", collape=" ")
+
+write(desc.geneset ,of_name,append = TRUE)
+
+write("",of_name,append = TRUE)
+
+for (i in 1:dim(resSigDown)[1]) {
+    val <- paste(row.names(resSigDown)[i],resSigDown[i,6],sep="\t")
+    write(val,of_name,sep="\t",append = TRUE)
+}
+
+write("",of_name,append = TRUE)
+```
