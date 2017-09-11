@@ -21,7 +21,7 @@ and from [Bioconductor](http://www.bioconductor.org/).
 To install required packages from CRAN, run this code in the Console.
 
 ~~~
-install.packages(c("ggplot2", "plyr", "dplyr"))
+install.packages(pkgs = c("ggplot2", "plyr", "dplyr", "ape", "flashClust", "WGCNA"))
 ~~~
 {: .r}
 
@@ -30,7 +30,7 @@ Select the Packages tab and click the Install button.
 Type this comma-separated list of package names into 
 the pop-up window.
 
-ggplot2, plyr, dplyr
+ggplot2, plyr, dplyr, ape, flashClust, WGCNA
 
 ### Bioconductor
 
@@ -41,7 +41,7 @@ and run it to install required Bioconductor packages.
 ~~~
 ## try http:// if https:// URLs are not supported
 source("https://bioconductor.org/biocLite.R")
-biocLite(c("DESeq2", "org.Mm.eg.db", "genefilter", "topGO", "DT"))
+biocLite(pkgs = c("DESeq2", "org.Mm.eg.db", "genefilter", "topGO", "DT", "biomaRt", "limma"))
 ~~~
 {: .r}
 
