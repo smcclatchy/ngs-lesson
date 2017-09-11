@@ -53,13 +53,12 @@ Please download the following large files before the workshop.
 [this lesson](http://swcarpentry.github.io/r-novice-gapminder/02-project-intro/) 
 to do this.
 
-2. Create a data directory (folder) to hold the data, and a script 
-directory to house your scripts. You can do this in the 
-RStudio Files tab, or use Finder on a Mac, or go to the Start menu
-and select (My) Computer on a Windows machine.
+2. Create a data directory (folder) to hold the data, a script 
+directory to house your scripts, and a results directory to hold results.
+You can do this in the  RStudio Files tab, or use Finder on a Mac, 
+or go to the Start menu and select (My) Computer on a Windows machine.
 
 3. Download the following data files into your data directory. 
 
-**FIXME:** link to DO_str417_striatum_addiction2017.full.w.res.Rdata
-
+[Data](ftp://ftp.jax.org/dgatti/AddictionCourse2017/DO_striatum_addiction2017_0912.Rdata)
 

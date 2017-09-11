@@ -240,14 +240,6 @@ library(dplyr)
 
 
 ~~~
-Warning: Installed Rcpp (0.12.12) different from Rcpp used to build dplyr (0.12.11).
-Please reinstall dplyr to avoid random crashes or undefined behavior.
-~~~
-{: .error}
-
-
-
-~~~
 
 Attaching package: 'dplyr'
 ~~~

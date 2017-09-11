@@ -30,7 +30,7 @@ source: Rmd
 -----
 One of the most common applications of RNA sequencing technology is to identify genes that are differentially expressed between sample groups, for example, between wild type and mutant, or between tumor and normal samples. Count data report the number of sequence reads (fragments) assigned to each gene, which describes the expression abundance of a gene. Similar data can be found in ChIP-Seq, HiC, shRNA screening, or mass spectrometry experiments.
 
-![](../fig/RNAseq-workflow.png)RNA-seq 
+![](../fig/RNAseq-workflow.png) 
 
 We will be using Diversity Outbred Striatum IVSA dataset: 386 DO mice, males vs. females.
 
