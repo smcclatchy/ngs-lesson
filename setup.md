@@ -49,7 +49,7 @@ biocLite(pkgs = c("DESeq2", "org.Mm.eg.db", "genefilter", "topGO", "DT", "biomaR
 ## Data files and project organization
 Please download the following large files before the workshop. 
 
-1. Create a project in RStudio. Refer to 
+1. (optional, but a good practice) Create a project in RStudio. Refer to 
 [this lesson](http://swcarpentry.github.io/r-novice-gapminder/02-project-intro/) 
 to do this.
 
@@ -57,6 +57,16 @@ to do this.
 directory to house your scripts, and a results directory to hold results.
 You can do this in the  RStudio Files tab, or use Finder on a Mac, 
 or go to the Start menu and select (My) Computer on a Windows machine.
+Alternatively, you can use the R Console to run the following commands.
+
+~~~
+dir.create("./data")
+dir.create("./scripts")
+dir.create("./results")
+~~~
+{: .r}
+
+You can also use `mkdir` from the Unix command line to create these directories.
 
 3. Download the following data files into your data directory. 
 

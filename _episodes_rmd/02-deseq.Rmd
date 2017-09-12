@@ -3,7 +3,7 @@ title: "Differential Gene Expression Analysis"
 teaching: 0
 exercises: 0
 questions:
-- "Key question"
+- "How do I find genes differentially expressed between treatment groups?"
 objectives:
 - "To check for sample mixup in data."
 - "To identify genes differentially expressed between treatment groups."
@@ -28,112 +28,116 @@ R Libraries and Data Import
 ------------------------------------
 Load the R libraries.
 
-```{r}
+```{r message=FALSE}
 library("DESeq2")
 library(ggplot2)
 library(dplyr)
+getwd()
 ```
 
-Load the data file from the URL. See the documentation for *gzcon* for an explanation of uncompressing a zipped (.gz) file through a connection, in this case, a URL.
+Load the data files.
 
-```{r, include=FALSE}
-z <- gzcon(con = url("http://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE72759&format=file&file=GSE72759_DO192_RNAseq_UpperQuartileNormalized_n21454genes_forGEOSubmission.txt.gz")) # uncompress the file
-raw <- textConnection(readLines(z)) # prepare for the read.table function
-data <- read.table(raw, header = TRUE)
-dim(data)
-names(data)
-data[1:5, 1:5] # a quick look at the data
+```{r load_data}
+# Load raw read counts.
+load("../data/DO192_RNAseq_EMASE_RawCounts.Rdata")
+
+# Load covariates & annotations.
+load("../data/ChickMungeretal2016_DiversityOutbred.Rdata")
+
+# a quick look at the expression data
+dim(expr.rna.192.rawcounts)
+names(expr.rna.192.rawcounts)
+expr.rna.192.rawcounts[1:5, 1:5]
 ```
 
-Check the expression data and make it a matrix.
+The raw read counts have `r nrow(expr.rna.192.rawcounts)` rows and `r ncol(expr.rna.192.rawcounts)` columns, with animal IDs for row names and Ensembl gene IDs for column names. The first five rows and five columns are shown above.
 
-```{r, include=FALSE}
-geneIDs = data[,1]
-data=data[,-1]
-rownames(data)=geneIDs
-data[1:5,1:5]
+Create a data frame containing key experimental design factors for this experiment. These factors include diet and sex.
+
+```{r exp_design}
+exp_design <- data.frame(
+  mouseIDs = rownames(expr.rna.192.rawcounts),
+  diet = covariates.rna.192$Diet,
+  sex = covariates.rna.192$Sex,
+  coat_color = covariates.rna.192$Coat.Color)
+head(exp_design)
 ```
 
-Let us create data frame containing key experimental design factors for the experiment.
-```{r exp_design, results="hide"}
-exp_design = data.frame(mouseIDs=colnames(exp.all),
-                        diet=covariates.rna.192$Diet,
-                        sex=covariates.rna.192$Sex,
-                        coat_color=covariates.rna.192$Coat.Color)
-```
+Check to make sure that all mouse IDs are represented in the raw read counts and in the experimental design file.  
 
-```{r check_data, results="hide"}
-all(colnames(exp.all)==exp_design$mouseIDs)
+```{r check_data}
+all(rownames(expr.rna.192.rawcounts)==exp_design$mouseIDs)
 ```
 
 A quick check for sample mixup
 ------------------------------
-Let us do a quick sample mixup check using **Xist** gene expression. Xist is non-coding RNA 
-```{r check_xist, results="hide"}
-geneID="ENSMUSG00000086503"
-geneName="Xist"
-gIndex = which(rownames(exp.all)==geneID)
-data= data.frame(exp_design, 
-                 exp=as.numeric(exp.all[gIndex,]))
-```
-```{r head_exp_design}
-head(data)
+Let's do a quick check for sample mixup with *Xist* gene expression. *Xist*, or X-inactive specific transcript, produces non-protein coding RNA. The gene is expressed exclusively from the inactivated X chromosome in female mice.  
 
+```{r check_xist}
+geneID <- "ENSMUSG00000086503"
+geneName <- "Xist"
+gIndex <- which(colnames(expr.rna.192.rawcounts)==geneID)
+data <- data.frame(exp_design,
+                   exp=as.numeric(expr.rna.192.rawcounts[,gIndex]))
 ```
 
-Let us plot **Xist** expression in all samples against sex.
-```{r plot_xist, results="hide"}
-p <- ggplot(data,aes(x=sex,y=exp)) 
-p <- p + geom_point(position = position_jitter(width = 0.1),size=3,
-                    aes(colour = factor(sex)))
-p <- p + stat_summary(fun.y=mean, geom="point", shape=5, size=4)
-p <- p + ylab("Gene Expression (Read Counts)")
-p <- p + theme(axis.text=element_text(size=12),
-               axis.title=element_text(size=20,face="bold", colour = "blue"),
-               plot.title = element_text(size = rel(2)))
-p <- p + ggtitle("Xist: ENSMUSG00000086503")
+
+Plot **Xist** expression in all samples against sex.   
+
+```{r plot_xist}
+p <- ggplot(data, aes(x = sex, y = exp)) 
+p <- p + geom_point(position = position_jitter(width = 0.1), 
+                    size = 3, aes(colour = sex))
+p <- p + stat_summary(fun.y = mean, geom = "point")
+p <- p + ylab(label = "Gene Expression (Read Counts)")
+p <- p + ggtitle(label = "Xist", subtitle = "ENSMUSG00000086503")
 p
 ```
 
+Female mice averaged 15,000 raw read counts for *Xist*, while males had none. We can rest assured that male and female samples weren't mixed up.
 
-Let us start with an example identifyingthe genes that are differentially expressed in the samples between two diets **Chow** and **High fat**.
+We'll start with an example identifying the genes that are differentially expressed in the samples between two diets **Chow** and **High fat**.
 
-```{r sample_ind, results="hide"}
+```{r sample_ind}
 male_index = which(exp_design$sex=="M")
 female_index = which(exp_design$sex=="F")
 chow_index= which(exp_design$diet=="chow")
 hf_index= which(exp_design$diet=="HF")
-male_chow = intersect(male_index,chow_index)
-male_hf = intersect(male_index,hf_index)
+male_chow = intersect(male_index, chow_index)
+male_hf = intersect(male_index, hf_index)
 ```
 
 Differential Expression Analysis with **three** samples in each group
 ------------------------------------------------------------------
-To make the example simple, let us subset our expression data such that we have **3 DO mice** under **Chow diet** and 3 DO mice under **High Fat diet**.
-```{r sample_size, results="hide"}
+To make the example simple, we'll subset the expression data such that we have **3 DO mice** under **Chow diet** and 3 DO mice under **High Fat diet**.  
+
+```{r sample_size}
 sampleSize = 3
 ```
-Later on we will see the effect of sample size by varying it.
-```{r subset_exp, results="hide"}
-diet_DE = c(male_chow[1:sampleSize],male_hf[1:sampleSize])
-exp_design_diet_DE= exp_design[diet_DE,]
+
+Later on we will see the effect of sample size by varying it.  
+
+```{r subset_exp}
+diet_DE <- c(male_chow[1:sampleSize], male_hf[1:sampleSize])
+exp_design_diet_DE <- exp_design[diet_DE,]
 exp_design_diet_DE
-exp_diet_DE=exp.all[,diet_DE]
-all(colnames(exp_diet_DE)==as.vector(exp_design_diet_DE$mouseIDs))
-```
-```{r head_exp}
-head(exp_diet_DE)
+exp_diet_DE <- expr.rna.192.rawcounts[diet_DE,]
+all(rownames(exp_diet_DE) == as.vector(exp_design_diet_DE$mouseIDs))
+exp_diet_DE[, 1:5]
 ```
 
-Let us filter out genes with zero and low expression (less than 5 read counts) in 50% of the samples.
-```{r filter_exp, results="hide"}
-thres= 5
-nzIndex= as.vector(which(apply(exp_diet_DE,1,function(x){sum(x>thres)/length(x)})>=0.5))
+Filter out genes with zero and low expression (fewer than 5 read counts) in 50% of the samples.
+
+```{r filter_exp}
+thres <- 5
+nzIndex <- as.vector(which(apply(exp_diet_DE, 1, function(x){sum(x>thres)/length(x)})>=0.5))
 head(nzIndex)
 exp.dietDE = exp_diet_DE[nzIndex,]
 dim(exp.dietDE)
 ```
-Let us create data frames for **DESeq2** object
+
+Create data frames for **DESeq2** object.  
+
 ```{r dataframe_deseq2, results="hide"}
 ### colData contains the condition/group information for Differenetial expression analysis
 colData <- DataFrame(group = factor(exp_design_diet_DE$diet))
@@ -179,7 +183,7 @@ Later on we will see the effect of sample size by varying it.
 diet_DE = c(male_chow[1:sampleSize],male_hf[1:sampleSize])
 exp_design_diet_DE= exp_design[diet_DE,]
 exp_design_diet_DE
-exp_diet_DE=exp.all[,diet_DE]
+exp_diet_DE=expr.rna.192.rawcounts[,diet_DE]
 all(colnames(exp_diet_DE)==as.vector(exp_design_diet_DE$mouseIDs))
 head(exp_diet_DE)
 ```
