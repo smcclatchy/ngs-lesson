@@ -66,7 +66,7 @@ Click on the triangle to the left of `expr.rna.192.rawcounts` in the Environment
 
 Let's look at the dimensions of the raw read counts.
 
-```{r explore_data}
+```{r explore_data, results="hide"}
 dim(expr.rna.192.rawcounts)
 dimnames(expr.rna.192.rawcounts)
 ```
@@ -116,11 +116,11 @@ Let us check the samples in the expression data and design data are in the same 
 all(colnames(exp_all)==exp_design$sample_ID)
 ```
 
-> ## Challenge 1 Familiarize yourself with the data
+> ## Challenge 2 Familiarize yourself with the data
 > 1). Find the number of samples in the data set.  
 > 2). Find the number of genes in the study.  
 >
-> > ## Solution to Challenge 1
+> > ## Solution to Challenge 2
 > > 1). 
 > > 2).   
 > {: .solution}
@@ -186,12 +186,12 @@ gene_id='ENSMUSG00000025907'
 plot_exp(exp_design, exp_all, gene_id, gene_info)
 ```
 
-> ## Challenge 2 Plot your favorite gene
+> ## Challenge 3 Plot your favorite gene
 > Pick your favorite gene (by ensembl ID) and plot its expression by:  
 > 1). sex.    
 > 2). diet.    
 >
-> > ## Solution to Challenge 2
+> > ## Solution to Challenge 3
 > > 1). 
 > > 2).   
 > {: .solution}
