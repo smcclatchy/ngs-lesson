@@ -31,7 +31,7 @@ R Libraries and Data Import
 #### Load packages
 Load the R libraries needed for the differential expression analysis.
 
-```{r R_package, warnings = FALSE, results="hide"}
+```{r R_package, warning = FALSE, results="hide"}
 library(DESeq2)
 library(ggplot2)
 library(dplyr)
@@ -55,40 +55,57 @@ head(gene_info)
 Load the R data files containing expression data and experimental design information needed for doing  differential expression analysis.
 
 ```{r load_Robj, results="hide"}
-load("data/ChickMungeretal2016_DiversityOutbred.Rdata")
-load("data/DO192_RNAseq_EMASE_RawCounts.Rdata")
+load("../data/ChickMungeretal2016_DiversityOutbred.Rdata")
+load("../data/DO192_RNAseq_EMASE_RawCounts.Rdata")
 ```
 
 #### Explore the data
 We loaded in several data objects. Look in the Environment pane to see what was loaded.  You should see objects containing annotations, covariates, and expression. In this episode we will work with expression and covariates for RNA data (i.e. `expr.rna.192.rawcounts`, `covariates.rna.192`,), rather than protein data.
 
-`pheno` is a data frame containing the phenotype data. `probs` is a 3 dimensional array containing the founder allele dosages for each sample at each marker on the array.  Click on the triangle to the left of `pheno` in the Environment pane to view its contents.
+Click on the triangle to the left of `expr.rna.192.rawcounts` in the Environment pane to view its contents. Click on the name `expr.rna.192.rawcounts` to view the first several rows.
 
-**NOTE:** the sample IDs must be in the rownames of `pheno`. For more information about data file format, see the [Setup](../setup.md) instructions.
+Let's look at the dimensions of the raw read counts.
 
-`pheno` contains the sample ID, sex, the study cohort, the dose of benzene and the proportion of bone marrow reticulocytes that were micro-nucleated `(prop.bm.MN.RET)`.  Note that the sample IDs are also stored in the rownames of `pheno`. In order to save time for this tutorial, we will only map with 143 samples from the 100 ppm dosing group.
-
-Next, we look at the dimensions of `probs`:
-
-```{r explore_data, results="hide"}
+```{r explore_data}
+dim(expr.rna.192.rawcounts)
+dimnames(expr.rna.192.rawcounts)
 ```
+
+The raw read count data has `r dim(expr.rna.192.rawcounts)[1]` rows representing animals, and `r dim(expr.rna.192.rawcounts)[2]` columns of genes.
+
+> ## Challenge 1 Explore the covariates  
+> Explore the covariates for the RNA data.  
+> 1). How many rows are there? How many columns?     
+> 2). What variables are in the rows? the columns?     
+>
+> > ## Solution to Challenge 1
+> > 1). `dim(covariates.rna.192)` 192 rows, 6 columns.  
+> > 2). `dimnames(covariates.rna.192)` The mouse IDs are in rows, and column variables include sex, diet, Sdinteraction, batch, generation, and coat color.    
+> {: .solution}
+{: .challenge}
+
 
 #### Data munging
 
 Let us munge the data :-)
 
 ```{r data_munging1, results="hide"}
+# Transpose the raw read counts so that genes are in rows and animal IDs are in columns
 exp_all= t(expr.rna.192.rawcounts)
+# Create a new data frame composed of animal IDs and covariate data for the experimental design
 exp_design=data.frame(Sample_ID=rownames(covariates.rna.192),covariates.rna.192,stringsAsFactors = FALSE)
+# Take a quick look at these new data structures
 head(exp_design)
 exp_all[1:5,1:5]
 exp_design[1:5,]
 ```
 
+
 ```{r data_munging2}
+# Re-define the experiment design data by selecting diet and sex along with animal ID
 exp_design=covariates.rna.192  %>% 
         select(Diet,Sex) %>%   rownames_to_column('Sample_ID')
-### print few rows of the exp_design 
+### print the first several rows of the experiment design
 head(exp_design)
 ```
 
