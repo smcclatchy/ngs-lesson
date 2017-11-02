@@ -20,27 +20,44 @@ and from [Bioconductor](http://www.bioconductor.org/).
 
 To install required packages from CRAN, run this code in the Console.
 
+For diet study, install:
 ~~~
-install.packages(pkgs = c("ggplot2", "plyr", "dplyr", "tibble", "ape", "flashClust", "WGCNA"))
+install.packages(pkgs = c("ggplot2", "dplyr", "tibble"))
+~~~
+{: .r}
+
+For addiction study, install:
+~~~
+install.packages(pkgs = c("ggplot2", "plyr", "dplyr", "ape", "flashClust", "WGCNA"))
 ~~~
 {: .r}
 
 Alternatively, you can use the Packages tab in RStudio.
 Select the Packages tab and click the Install button.
 Type this comma-separated list of package names into 
-the pop-up window.
+the pop-up window, like this:
 
-ggplot2, plyr, dplyr, tibble, ape, flashClust, WGCNA
+ggplot2, dplyr, tibble
 
 ### Bioconductor
 
 The `biocLite.R` script installs Bioconductor packages.
-Run the following in the Console to source this script 
-and run it to install required Bioconductor packages.
+Run the following in the R console to read this script from Bioconductor, then run the script to install required Bioconductor packages.
 
 ~~~
 ## try http:// if https:// URLs are not supported
 source("https://bioconductor.org/biocLite.R")
+~~~
+{: .r}
+
+For diet study, install:
+~~~
+biocLite(pkgs = c("DESeq2", "limma"))
+~~~
+{: .r}
+
+For addiction study, install:
+~~~
 biocLite(pkgs = c("DESeq2", "org.Mm.eg.db", "genefilter", "topGO", "DT", "biomaRt", "limma"))
 ~~~
 {: .r}
@@ -65,7 +82,10 @@ dir.create("./results")
 
 3. Please download the following large files **before the workshop**, and place them in your `data` folder.
 
+For diet study, download:  
 [liver data for eQTL, pQTL, and mediation analyses](ftp://ftp.jax.org/scm/ChickMungeretal2016_DiversityOutbred.Rdata)
 [raw count data](ftp://ftp.jax.org/scm/DO192_RNAseq_EMASE_RawCounts.Rdata)
+
+For addiction study, download:  
 [addiction data](ftp://ftp.jax.org/dgatti/AddictionCourse2017/DO_striatum_addiction2017_0912.Rdata)
 

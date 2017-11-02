@@ -15,18 +15,13 @@ source: Rmd
 
 
 
-One of the most common applications of RNA-seq technology is using it for identifying genes that are differentially expressed between sample groups. Typical examples include differential expression analysis between wild type and mutant samples, or cancer vs normal samples. 
+One of the most common applications of RNA sequencing technology is to identify genes that are differentially expressed between sample groups, for example, between wild type and mutant, or between tumor and normal samples. Count data report the number of sequence reads (fragments) assigned to each gene, which describes the expression abundance of a gene. Similar data can be found in ChIP-Seq, HiC, shRNA screening, or mass spectrometry experiments.
 
-Let us assume that we have quantified total gene expression for all known genes using RNA-seq analysis pipeline discussed earlier for Diversity Outbred mouse populations under different diets. 
+![](../fig/RNAseq-workflow.png)
 
-We will be using read counts at gene level and the software tool **DESeq2** for doing differential expression analysis on a subset of the DO mice. 
-
-Our goals of this exercise are
-
-* find the genes that are differentially expressed between DO mice under standard **Chow diet** and **High fat diet** in 
-
-* see the **effect of sample size** on detecting differentially expressed genes.
-
+Once we have aligned sequence reads and have quantified expression, we can continue the pipeline with differential expression analysis. We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html), among other packages. 
+  
+We will use quantified total liver gene expression data from 192 male and female Diversity Outbred (DO) mice [Chick, J.M., et al. (2016) *Nature* 534(7608):500-505.](https://www.nature.com/nature/journal/v534/n7608/abs/nature18270.html) Half of the animals were fed a standard rodent chow diet, and the other half fed a high-fat diet.
 
 R Libraries and Data Import
 ------------------------------------
@@ -78,7 +73,7 @@ The following object is masked from 'package:BiocGenerics':
 
 #### Load gene information
 
-Let us load the data file containing basic gene information that are used in the analysis.
+Load the data file containing basic gene information used in the analysis.
 
 
 ~~~
@@ -91,7 +86,7 @@ head(gene_info)
 
 #### Load R Data files
 
-Let us load the R object files containing expression data and experimental design information needed for doing  differential expression analysis.
+Load the R data files containing expression data and experimental design information needed for doing  differential expression analysis.
 
 
 ~~~
@@ -243,6 +238,7 @@ Error in head(exp_design): object 'exp_design' not found
 
 Let us check the samples in the expression data and design data are in the same order.
 
+
 ~~~
 all(colnames(exp_all)==exp_design$sample_ID)
 ~~~
@@ -255,10 +251,15 @@ Error in colnames(exp_all): object 'exp_all' not found
 ~~~
 {: .error}
 
-### Code Challenge
-
-1. Find the number of samples in the data set.
-2. Find the number of genes in the study
+> ## Challenge 1 Familiarize yourself with the data
+> 1). Find the number of samples in the data set.  
+> 2). Find the number of genes in the study.  
+>
+> > ## Solution to Challenge 1
+> > 1). 
+> > 2).   
+> {: .solution}
+{: .challenge}
 
 
 A quick check for sample mixup
@@ -357,13 +358,16 @@ Error in rownames(gexp): object 'exp_all' not found
 ~~~
 {: .error}
 
-
-### Code Challenge
-
-Pick your favorite gene (use ensembl ID) and plot its expression by 
-  
-  1. Sex
-  2. Diet.
+> ## Challenge 2 Plot your favorite gene
+> Pick your favorite gene (by ensembl ID) and plot its expression by:  
+> 1). sex.    
+> 2). diet.    
+>
+> > ## Solution to Challenge 2
+> > 1). 
+> > 2).   
+> {: .solution}
+{: .challenge}
   
 Differential Expression Analysis with **three** samples in each group
 ------------------------------------------------------------------

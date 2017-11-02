@@ -23,23 +23,15 @@ One of the most common applications of RNA sequencing technology is to identify 
 ![](../fig/RNAseq-workflow.png)
 
 Once we have aligned sequence reads and have quantified expression, we can continue the pipeline with differential expression analysis. We will use read counts at the gene level and the R package [DESeq2](http://bioconductor.org/packages/release/bioc/html/DESeq2.html), among other packages. 
-
-The data we will use quantified total gene expression for all known genes using RNA-seq analysis pipeline discussed earlier for Diversity Outbred mouse populations under different diets. 
-
-
-Our goals of this exercise are
-
-* find the genes that are differentially expressed between DO mice under standard **Chow diet** and **High fat diet** in 
-
-* see the **effect of sample size** on detecting differentially expressed genes.
-
+  
+We will use quantified total liver gene expression data from 192 male and female Diversity Outbred (DO) mice [Chick, J.M., et al. (2016) *Nature* 534(7608):500-505.](https://www.nature.com/nature/journal/v534/n7608/abs/nature18270.html) Half of the animals were fed a standard rodent chow diet, and the other half fed a high-fat diet.
 
 R Libraries and Data Import
 ------------------------------------
 #### Load packages
-Let us load the R packages and the data needed for the differential expression analysis.
+Load the R libraries needed for the differential expression analysis.
 
-```{r R_package, results="hide"}
+```{r R_package, warnings = FALSE, results="hide"}
 library(DESeq2)
 library(ggplot2)
 library(dplyr)
@@ -49,7 +41,7 @@ library(limma)
 
 #### Load gene information
 
-Let us load the data file containing basic gene information that are used in the analysis.
+Load the data file containing basic gene information used in the analysis.
 
 ```{r load_gene_info, results="hide"}
 gene_info=read.csv(url("ftp://ftp.jax.org/dgatti/ShortCourse2015/ENSMUSG-gene-info-R84.tsv"),header=FALSE,sep="\t")
@@ -60,11 +52,25 @@ head(gene_info)
 
 #### Load R Data files
 
-Let us load the R object files containing expression data and experimental design information needed for doing  differential expression analysis.
+Load the R data files containing expression data and experimental design information needed for doing  differential expression analysis.
 
 ```{r load_Robj, results="hide"}
 load("data/ChickMungeretal2016_DiversityOutbred.Rdata")
 load("data/DO192_RNAseq_EMASE_RawCounts.Rdata")
+```
+
+#### Explore the data
+We loaded in several data objects. Look in the Environment pane to see what was loaded.  You should see objects containing annotations, covariates, and expression. In this episode we will work with expression and covariates for RNA data (i.e. `expr.rna.192.rawcounts`, `covariates.rna.192`,), rather than protein data.
+
+`pheno` is a data frame containing the phenotype data. `probs` is a 3 dimensional array containing the founder allele dosages for each sample at each marker on the array.  Click on the triangle to the left of `pheno` in the Environment pane to view its contents.
+
+**NOTE:** the sample IDs must be in the rownames of `pheno`. For more information about data file format, see the [Setup](../setup.md) instructions.
+
+`pheno` contains the sample ID, sex, the study cohort, the dose of benzene and the proportion of bone marrow reticulocytes that were micro-nucleated `(prop.bm.MN.RET)`.  Note that the sample IDs are also stored in the rownames of `pheno`. In order to save time for this tutorial, we will only map with 143 samples from the 100 ppm dosing group.
+
+Next, we look at the dimensions of `probs`:
+
+```{r explore_data, results="hide"}
 ```
 
 #### Data munging
@@ -93,10 +99,15 @@ Let us check the samples in the expression data and design data are in the same 
 all(colnames(exp_all)==exp_design$sample_ID)
 ```
 
-### Code Challenge
-
-1. Find the number of samples in the data set.
-2. Find the number of genes in the study
+> ## Challenge 1 Familiarize yourself with the data
+> 1). Find the number of samples in the data set.  
+> 2). Find the number of genes in the study.  
+>
+> > ## Solution to Challenge 1
+> > 1). 
+> > 2).   
+> {: .solution}
+{: .challenge}
 
 
 A quick check for sample mixup
@@ -158,13 +169,16 @@ gene_id='ENSMUSG00000025907'
 plot_exp(exp_design, exp_all, gene_id, gene_info)
 ```
 
-
-### Code Challenge
-
-Pick your favorite gene (use ensembl ID) and plot its expression by 
-  
-  1. Sex
-  2. Diet.
+> ## Challenge 2 Plot your favorite gene
+> Pick your favorite gene (by ensembl ID) and plot its expression by:  
+> 1). sex.    
+> 2). diet.    
+>
+> > ## Solution to Challenge 2
+> > 1). 
+> > 2).   
+> {: .solution}
+{: .challenge}
   
 Differential Expression Analysis with **three** samples in each group
 ------------------------------------------------------------------
