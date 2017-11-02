@@ -21,7 +21,7 @@ and from [Bioconductor](http://www.bioconductor.org/).
 To install required packages from CRAN, run this code in the Console.
 
 ~~~
-install.packages(pkgs = c("ggplot2", "plyr", "dplyr", "ape", "flashClust", "WGCNA"))
+install.packages(pkgs = c("ggplot2", "plyr", "dplyr", "tibble", "ape", "flashClust", "WGCNA"))
 ~~~
 {: .r}
 
@@ -30,7 +30,7 @@ Select the Packages tab and click the Install button.
 Type this comma-separated list of package names into 
 the pop-up window.
 
-ggplot2, plyr, dplyr, ape, flashClust, WGCNA
+ggplot2, plyr, dplyr, tibble, ape, flashClust, WGCNA
 
 ### Bioconductor
 
@@ -45,30 +45,27 @@ biocLite(pkgs = c("DESeq2", "org.Mm.eg.db", "genefilter", "topGO", "DT", "biomaR
 ~~~
 {: .r}
 
-
 ## Data files and project organization
-Please download the following large files before the workshop. 
 
-1. (optional, but a good practice) Create a project in RStudio. Refer to 
-[this lesson](http://swcarpentry.github.io/r-novice-gapminder/02-project-intro/) 
-to do this.
+1. Make a new folder in your Desktop called `rna-seq`. Move into this new folder.
 
-2. Create a data directory (folder) to hold the data, a script 
-directory to house your scripts, and a results directory to hold results.
-You can do this in the  RStudio Files tab, or use Finder on a Mac, 
-or go to the Start menu and select (My) Computer on a Windows machine.
-Alternatively, you can use the R Console to run the following commands.
+2. Create  a `data` folder to hold the data, a `scripts` folder to house your scripts, and a `results` folder to hold results. 
+
+Alternatively, you can use the R console to run the following commands for steps 1 and 2.
 
 ~~~
+setwd("~/Desktop")
+dir.create("./rna-seq")
+setwd("~/Desktop/rna-seq")
 dir.create("./data")
 dir.create("./scripts")
 dir.create("./results")
 ~~~
 {: .r}
 
-You can also use `mkdir` from the Unix command line to create these directories.
+3. Please download the following large files **before the workshop**, and place them in your `data` folder.
 
-3. Download the following data files into your data directory. 
-
-[Data](ftp://ftp.jax.org/dgatti/AddictionCourse2017/DO_striatum_addiction2017_0912.Rdata)
+[liver data for eQTL, pQTL, and mediation analyses](ftp://ftp.jax.org/scm/ChickMungeretal2016_DiversityOutbred.Rdata)
+[raw count data](ftp://ftp.jax.org/scm/DO192_RNAseq_EMASE_RawCounts.Rdata)
+[addiction data](ftp://ftp.jax.org/dgatti/AddictionCourse2017/DO_striatum_addiction2017_0912.Rdata)
 

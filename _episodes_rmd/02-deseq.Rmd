@@ -32,21 +32,26 @@ Load the R libraries.
 library("DESeq2")
 library(ggplot2)
 library(dplyr)
-getwd()
 ```
 
+Check your working directory and set it if needed.
 Load the data files.
 
-```{r load_data}
+```{r load_data, message=FALSE}
+getwd()
+
 # Load raw read counts.
 load("../data/DO192_RNAseq_EMASE_RawCounts.Rdata")
 
 # Load covariates & annotations.
 load("../data/ChickMungeretal2016_DiversityOutbred.Rdata")
+```
 
+Get a quick overview of the data.
+
+```{r quick_look}
 # a quick look at the expression data
 dim(expr.rna.192.rawcounts)
-names(expr.rna.192.rawcounts)
 expr.rna.192.rawcounts[1:5, 1:5]
 ```
 
@@ -82,7 +87,7 @@ data <- data.frame(exp_design,
 ```
 
 
-Plot **Xist** expression in all samples against sex.   
+Plot *Xist* expression in all samples against sex.   
 
 ```{r plot_xist}
 p <- ggplot(data, aes(x = sex, y = exp)) 
@@ -109,19 +114,17 @@ male_hf = intersect(male_index, hf_index)
 
 Differential Expression Analysis with **three** samples in each group
 ------------------------------------------------------------------
-To make the example simple, we'll subset the expression data such that we have **3 DO mice** under **Chow diet** and 3 DO mice under **High Fat diet**.  
-
-```{r sample_size}
-sampleSize = 3
-```
-
+To make the example simple, we'll subset the expression data such that we have 3 DO mice under Chow diet and 3 DO mice under High Fat diet. 
 Later on we will see the effect of sample size by varying it.  
 
 ```{r subset_exp}
+sampleSize = 3
 diet_DE <- c(male_chow[1:sampleSize], male_hf[1:sampleSize])
 exp_design_diet_DE <- exp_design[diet_DE,]
 exp_design_diet_DE
 exp_diet_DE <- expr.rna.192.rawcounts[diet_DE,]
+
+# Check that mouse IDs match.   
 all(rownames(exp_diet_DE) == as.vector(exp_design_diet_DE$mouseIDs))
 exp_diet_DE[, 1:5]
 ```
@@ -130,18 +133,22 @@ Filter out genes with zero and low expression (fewer than 5 read counts) in 50% 
 
 ```{r filter_exp}
 thres <- 5
-nzIndex <- as.vector(which(apply(exp_diet_DE, 1, function(x){sum(x>thres)/length(x)})>=0.5))
+nzIndex <- as.vector(which(apply(exp_diet_DE, 1,
+                                 function(x) { 
+                                   sum(x > thres) / length(x) 
+                                   } ) >= 0.5))
 head(nzIndex)
 exp.dietDE = exp_diet_DE[nzIndex,]
 dim(exp.dietDE)
 ```
 
-Create data frames for **DESeq2** object.  
+Create data frames for `DESeq2` object.  
 
 ```{r dataframe_deseq2, results="hide"}
-### colData contains the condition/group information for Differenetial expression analysis
+### colData contains the condition/group information for differential expression analysis
 colData <- DataFrame(group = factor(exp_design_diet_DE$diet))
 ```
+
 ```{r deseq2_obj, results="hide"}
 ### Create DESeq2 object using expression and colData
 dds <- DESeqDataSetFromMatrix(countData = as.data.frame(round(exp.dietDE)),
@@ -149,13 +156,16 @@ dds <- DESeqDataSetFromMatrix(countData = as.data.frame(round(exp.dietDE)),
 dds <- DESeq(dds)
 res = results(dds)
 ```
+
 ```{r res_summary, results="hide"}
 ### summary of Differential Expression analysis
 summary(res)
 ```
+
 ```{r MA_plot, results="hide"}
 plotMA(res, main="M-A Plot: 3 Samples per group", ylim=c(-2,2))
 ```
+
 ```{r gene_plot, results="hide"}
 d<-plotCounts(dds, gene=which.min(res$padj), intgroup="group",
               returnData=TRUE)
@@ -163,43 +173,41 @@ p <- ggplot(d, aes(x=group, y=count)) +
   geom_point(position=position_jitter(w=0.2,h=0),size=3)
 p <- p + theme(axis.text=element_text(size=12),
                axis.title=element_text(size=20,face="bold", colour = "blue"),
-               plot.title = element_text(size = rel(2)))
+                plot.title = element_text(size = rel(2)))
 p
 ```
+
 Let us plot the histogram of p-values. The p-value histogram is a good diagnostic test for the differential expression analysis.
 
 ```{r pval_hist, results="hide"}
-hist(res$pvalue,breaks=100,col="grey", xlab="p-value",main="p-value histogram: 3 Samples per group")
+hist(res$pvalue, breaks=100, col="grey", xlab = "p-value", main = "p-value histogram: 3 Samples per group")
 ```
 
-Differential Expression Analysis with **ten** samples in each **diet** group
+Differential Expression Analysis with **ten** samples in each diet group
 ------------------------------------------------------------------
 
-```{r sample_size_10, results="hide"}
-sampleSize = 10
-```
-Later on we will see the effect of sample size by varying it.
 ```{r subset_exp_10, results="hide"}
-diet_DE = c(male_chow[1:sampleSize],male_hf[1:sampleSize])
-exp_design_diet_DE= exp_design[diet_DE,]
+sampleSize <- 10
+diet_DE <- c(male_chow[1:sampleSize],male_hf[1:sampleSize])
+exp_design_diet_DE <- exp_design[diet_DE,]
 exp_design_diet_DE
-exp_diet_DE=expr.rna.192.rawcounts[,diet_DE]
+exp_diet_DE <- expr.rna.192.rawcounts[,diet_DE]
 all(colnames(exp_diet_DE)==as.vector(exp_design_diet_DE$mouseIDs))
-head(exp_diet_DE)
-```
-```{r head_exp_10}
 head(exp_diet_DE)
 ```
 
 Let us filter out genes with zero and low expression (less than 5 read counts) in 50% of the samples.
+
 ```{r filter_exp_10, results="hide"}
 thres= 5
-nzIndex= as.vector(which(apply(exp_diet_DE,1,function(x){sum(x>thres)/length(x)})>=0.5))
+nzIndex= as.vector(which(apply(exp_diet_DE, 1,                        function(x) { sum(x>thres) / length(x) }) >= 0.5))
 head(nzIndex)
-exp.dietDE = exp_diet_DE[nzIndex,]
+exp.dietDE <- exp_diet_DE[nzIndex,]
 dim(exp.dietDE)
 ```
+
 Let us create data frames for DESeq2 object
+
 ```{r dataframe_deseq2_10, results="hide"}
 ### colData contains the condition/group information for Differenetial expression analysis
 colData <- DataFrame(group = factor(exp_design_diet_DE$diet))
@@ -229,7 +237,7 @@ p <- p + theme(axis.text=element_text(size=12),
 p
 ```
 ```{r pval_hist_10, results="hide"}
-hist(res$pvalue,breaks=100,col="grey", xlab="p-value",main="p-value Histogram: 10 Samples per group")
+hist(res$pvalue, breaks=100,col="grey", xlab="p-value", main="p-value Histogram: 10 Samples per group")
 ```
 
 ```{r svd_pca, results="hide"}
@@ -237,9 +245,9 @@ svd.obj = svd(apply(exp.dietDE,1,function(x){x-mean(x)}))
 plot(svd.obj$d^2/sum(svd.obj$d^2),ylab="Percent Variance Explained", main="PC of expression data")
 ```
 ```{r svd_cor, results="hide"}
-print(cor(svd.obj$u[,1],as.numeric(as.factor(exp_design_diet_DE$diet))))
-print(cor(svd.obj$u[,2],as.numeric(as.factor(exp_design_diet_DE$diet))))
-print(cor(svd.obj$u[,5],as.numeric(as.factor(exp_design_diet_DE$diet))))
+print(cor(svd.obj$u[,1], as.numeric(as.factor(exp_design_diet_DE$diet))))
+print(cor(svd.obj$u[,2], as.numeric(as.factor(exp_design_diet_DE$diet))))
+print(cor(svd.obj$u[,5], as.numeric(as.factor(exp_design_diet_DE$diet))))
 print(cor(svd.obj$u[,1],
     as.numeric(as.factor(covariates.rna.192$Coat.Color[diet_DE]))))
 print(cor(as.numeric(as.factor(exp_design_diet_DE$diet)),
