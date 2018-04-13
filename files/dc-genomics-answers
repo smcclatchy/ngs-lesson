@@ -1,0 +1,19 @@
+Retrieving samples from the facility
+When the data come back from the sequencing facility, you will receive some documentation (metadata) as well as the sequence files themselves. Download and examine the following example file - here provided as a text file and
+
+Excel file:
+
+Sequencing results - text
+Sequencing results - Excel
+
+Exercise
+1. How are these samples organized?
+2. If you wanted to relate file names to the sample names submitted above (e.g. wild type…) could you do so?
+3. What do the _R1/_R2 extensions mean in the file names?
+4. What does the ‘.gz’ extension on the filenames indicate?
+5. What is the total file size - what challenges in downloading and sharing these data might exist?
+
+
+
+3. The Illumina strand specific protocol is such that only the fragment of the original orientation is sequenced. But as it happens the reverse complement of it will actually be sequenced and is placed into file R1. The mate pair that goes into file R2 will be the reverse complement of the fragment starting in R1 and thus its orientation will correspond to the original orientation. This makes the protocol produce a R2-R1 read orientation.
+
