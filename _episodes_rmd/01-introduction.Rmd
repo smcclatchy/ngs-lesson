@@ -3,7 +3,7 @@ title: "Introduction"
 teaching: 0
 exercises: 0
 questions:
-- "Key question"
+- "How do I determine differences in expression between two groups?"
 objectives:
 - "First objective."
 keypoints:
